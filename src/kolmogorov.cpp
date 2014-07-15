@@ -88,16 +88,16 @@ void KS::init_ks_slow()
 bool KS::test(double alpha)
 {
     double limite = Klim(alpha);
-    std::cout << "K+: " <<_kplus <<"\t K-:" << _kmoins <<"\t Kmax:" << _kmax << std::endl;
-    std::cout << "Klimit : " << limite << std::endl ;
+    //std::cout << "K+: " <<_kplus <<"\t K-:" << _kmoins <<"\t Kmax:" << _kmax << std::endl;
+    //std::cout << "Klimit : " << limite << std::endl ;
     if(_kmax >= limite)
     {
-        std::cout << "Kmax >= Klim, Null Hypothesis rejected at a level "<< alpha << std::endl;
+        //std::cout << "Kmax >= Klim, Null Hypothesis rejected at a level "<< alpha << std::endl;
         return false;
     }
     else
     {
-        std::cout << "Kmax < Klim, Null Hypothesis not rejected (Random numbers OK.)"<< std::endl;
-        return false;
+        //std::cout << "Kmax < Klim, Null Hypothesis not rejected (Random numbers OK.)"<< std::endl;
+        return true;
     }
 }

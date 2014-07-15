@@ -1,18 +1,37 @@
 #include <iostream>
 #include "kolmogorov.hpp"
-
+#include <cassert>
 extern "C"
 {
     #include "mt19937ar.h"
 }
 
+static int passedTests = 0;
 using namespace std;
+
+
+bool kolmogorov_smirnov()
+{
+    std::cout << "Starting Kolmogorov-Smirnov test... ";
+    KS ks(1000000);
+    ks.init_ks_slow();
+    if(ks.test())
+    {
+        passedTests++ ;
+        std::cout << "OK."<< std::endl;
+    }
+    else
+    {
+        std::cout << "NOK."<< std::endl;
+    }
+
+}
 
 int main(void)
 {
-    KS ks(10000000);
-    ks.init_ks_slow();
-    ks.test();
+    kolmogorov_smirnov();
+
+    std::cout << passedTests << " tests passed." << std::endl;
 	return 0;
 }
 
