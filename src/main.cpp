@@ -10,8 +10,9 @@ using namespace std;
 
 int main(void)
 {
-    KS ks(1000);
+    KS ks(10000000);
     ks.init_ks_slow();
+    ks.test();
 	return 0;
 }
 

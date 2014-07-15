@@ -1,7 +1,9 @@
 #include "kolmogorov.hpp"
 #include <iostream>
 #include <cstdlib>
+#include <algorithm>
 #include <math.h>
+#include <cassert>
 
 extern "C"
 {
@@ -12,35 +14,66 @@ extern "C"
 
 KS::KS(int n)
 {
+	unsigned long long seed = time(NULL);
+	init_genrand(seed);
     _n = n;
+    std::vector<double> _genVals(_n);
 }
 
-
-int comp_func(double const * a, double const * b)
+KS::~KS()
 {
-	return (int) (*a - *b);
 }
 
+double cAlpha(double alpha)
+{
+    if(alpha == 0.10)
+        return 1.22;
+    else if (alpha == 0.05)
+        return 1.36;
+    else if (alpha == 0.025)
+        return 1.48;
+    else if (alpha == 0.01)
+        return 1.63;
+}
+
+double KS::Klim(double alpha = 0.05)
+{
+    return cAlpha(alpha)*sqrt(2.0);
+}
+
+int comp_func(double a, double b)
+{
+    double diff = a - b;
+    if (diff == 0)
+        return 0;
+    else if (diff < 0)
+        return -1;
+    else
+        return 1;
+}
+
+bool comp_func_2(double a, double b)
+{
+    return (a<b);
+}
 void KS::init_ks_slow()
 {
     int i;
-    double _genVals[_n], currentKp, currentKm;
+    double j,currentKp = 0.0, currentKm = 0.0;
     // First Step : Generating a pool of random numbers to test
-	unsigned long long seed = time(NULL);
-	init_genrand(seed);
 	for(i = 0;i < _n; i++)
 	{
-		_genVals[i] = genrand_real1();
+		_genVals.push_back(genrand_real1());
 	}
-    // Sort these random numbers:
-	qsort(_genVals, _n, sizeof(double), (int (*) (const void*, const void*)) comp_func);
+    // Then sorting these random numbers:
+	std::sort(_genVals.begin(), _genVals.end() ,comp_func_2);
 
-    // Compute the Kplus and Kminus values
+    // And finally computing the Kplus and Kminus values
     for(i =0; i< _n ; i++)
     {
-		std::cout<< _genVals[i]<< std::endl;
-        currentKp = i/_n - gsl_cdf_flat_P (_genVals[i], 0, 1);
-        currentKm = gsl_cdf_flat_P (_genVals[i], 0, 1) - (i-1)/_n;
+        j = (double) i;
+        currentKp = j/_n - gsl_cdf_flat_P (_genVals[i], 0.0, 1);
+        currentKm = gsl_cdf_flat_P (_genVals[i], 0, 1) - (j-1)/_n;
         if (currentKp >= _kplus)
             _kplus = currentKp;
         if (currentKm >= _kmoins)
@@ -49,5 +82,22 @@ void KS::init_ks_slow()
     _kplus = sqrt(_n)*_kplus;
     _kmoins = sqrt(_n)*_kmoins;
     _kmax = std::max(_kplus, _kmoins);
-    std::cout << _kplus <<" " << _kmoins <<" " << _kmax << std::endl;
+
+}
+
+bool KS::test(double alpha)
+{
+    double limite = Klim(alpha);
+    std::cout << "K+: " <<_kplus <<"\t K-:" << _kmoins <<"\t Kmax:" << _kmax << std::endl;
+    std::cout << "Klimit : " << limite << std::endl ;
+    if(_kmax >= limite)
+    {
+        std::cout << "Kmax >= Klim, Null Hypothesis rejected at a level "<< alpha << std::endl;
+        return false;
+    }
+    else
+    {
+        std::cout << "Kmax < Klim, Null Hypothesis not rejected (Random numbers OK.)"<< std::endl;
+        return false;
+    }
 }
